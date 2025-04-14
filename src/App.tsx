@@ -77,7 +77,14 @@ function App() {
           <label htmlFor="inStock">In stock</label>
         </div>
       </div>
-      <p id="results-indicator"></p>
+      <p id="results-indicator">
+        {searchTerm === '' ? (`${searchedProducts.length} Products`) 
+        : (
+          searchedProducts.length === 0
+            ? 'No search results found'
+              : `${searchedProducts.length} Results`
+        )}
+      </p>
       <ProductList itemList={searchedProducts}/>
     </div>
   )
