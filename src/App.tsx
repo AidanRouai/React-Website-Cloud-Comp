@@ -121,12 +121,15 @@ function App() {
         </div>
       </div>
       <p id="results-indicator">
-      {searchTerm === '' ? (`${searchedProducts.length} Products`) 
-        : (
-          searchedProducts.length === 0
-            ? 'No search results found'
-              : `${searchedProducts.length} Results`
-        )}
+        {searchTerm === ''
+          ? searchedProducts.length === 1
+            ? '1 Product'
+            : `${searchedProducts.length} Products`
+          : searchedProducts.length === 0
+          ? 'No search results found'
+          : searchedProducts.length === 1
+          ? '1 Result'
+          : `${searchedProducts.length} Results`}
       </p>
       <ProductList itemList={searchedProducts} />
     </div>
