@@ -16,38 +16,70 @@ type Product = {
 function App() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [searchedProducts, setSearchedProducts] = useState<Product[]>(itemList);
+  const [sortOption, setSortOption] = useState<string>('AtoZ'); // Default sorting
+  const [inStockOnly, setInStockOnly] = useState<boolean>(false); // Default: show all
 
   // ===== Hooks =====
-  useEffect(() => updateSearchedProducts(), [searchTerm]);
+  useEffect(() => updateSearchedProducts(), [searchTerm, sortOption, inStockOnly]);
 
   // ===== Basket management =====
-  function showBasket(){
+  function showBasket() {
     let areaObject = document.getElementById('shopping-area');
-    if(areaObject !== null){
-      areaObject.style.display='block';
+    if (areaObject !== null) {
+      areaObject.style.display = 'block';
     }
   }
 
-  function hideBasket(){
+  function hideBasket() {
     let areaObject = document.getElementById('shopping-area');
-    if(areaObject !== null){
-      areaObject.style.display='none';
+    if (areaObject !== null) {
+      areaObject.style.display = 'none';
     }
   }
 
-  // ===== Search =====
-  function updateSearchedProducts(){
+  // ===== Search, Sort, and Filter =====
+  function updateSearchedProducts() {
     let holderList: Product[] = itemList;
 
-    setSearchedProducts(holderList.filter((product: Product) =>
+    // Filter by search term
+    holderList = holderList.filter((product: Product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ));
+    );
+
+    // Filter by in-stock status
+    if (inStockOnly) {
+      holderList = holderList.filter((product: Product) => product.quantity > 0);
+    }
+
+    // Sort based on selected option
+    switch (sortOption) {
+      case 'AtoZ':
+        holderList.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'ZtoA':
+        holderList.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case '£LtoH':
+        holderList.sort((a, b) => a.price - b.price);
+        break;
+      case '£HtoL':
+        holderList.sort((a, b) => b.price - a.price);
+        break;
+      case '*LtoH':
+        holderList.sort((a, b) => a.rating - b.rating);
+        break;
+      case '*HtoL':
+        holderList.sort((a, b) => b.rating - a.rating);
+        break;
+      default:
+        break;
+    }
+
+    setSearchedProducts(holderList);
   }
 
- 
-
   return (
-    <div id="container"> 
+    <div id="container">
       <div id="logo-bar">
         <div id="logo-area">
           <img src="./src/assets/logo.png"></img>
@@ -63,9 +95,16 @@ function App() {
         </div>
       </div>
       <div id="search-bar">
-        <input type="text" placeholder="Search..." onChange={changeEventObject => setSearchTerm(changeEventObject.target.value)}></input>
+        <input
+          type="text"
+          placeholder="Search..."
+          onChange={(changeEventObject) =>
+            setSearchTerm(changeEventObject.target.value)
+          }
+        ></input>
+
         <div id="control-area">
-          <select>
+          <select onChange={(e) => setSortOption(e.target.value)}>
             <option value="AtoZ">By name (A - Z)</option>
             <option value="ZtoA">By name (Z - A)</option>
             <option value="£LtoH">By price (low - high)</option>
@@ -73,21 +112,25 @@ function App() {
             <option value="*LtoH">By rating (low - high)</option>
             <option value="*HtoL">By rating (high - low)</option>
           </select>
-          <input id="inStock" type="checkbox"></input>
+          <input
+            id="inStock"
+            type="checkbox"
+            onChange={(e) => setInStockOnly(e.target.checked)}
+          ></input>
           <label htmlFor="inStock">In stock</label>
         </div>
       </div>
       <p id="results-indicator">
-        {searchTerm === '' ? (`${searchedProducts.length} Products`) 
+      {searchTerm === '' ? (`${searchedProducts.length} Products`) 
         : (
           searchedProducts.length === 0
             ? 'No search results found'
               : `${searchedProducts.length} Results`
         )}
       </p>
-      <ProductList itemList={searchedProducts}/>
+      <ProductList itemList={searchedProducts} />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
