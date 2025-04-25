@@ -13,11 +13,19 @@ type Product = {
   image_link: string
 }
 
+type BasketItem = {
+  id: number
+  name: string
+  price: number
+  quantity: number
+}
+
 function App() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [searchedProducts, setSearchedProducts] = useState<Product[]>(itemList);
   const [sortOption, setSortOption] = useState<string>('AtoZ'); // Default sorting
   const [inStockOnly, setInStockOnly] = useState<boolean>(false); // Default: show all
+  const [basket, setBasket] = useState<BasketItem[]>([]); // Default: empty basket
 
   // ===== Hooks =====
   useEffect(() => updateSearchedProducts(), [searchTerm, sortOption, inStockOnly]);
@@ -35,6 +43,37 @@ function App() {
     if (areaObject !== null) {
       areaObject.style.display = 'none';
     }
+  }
+
+  function addToBasket(product: Product) {
+    setBasket((prevBasket) => {
+      //Check if the product already exists in the basket
+      const existingItem = prevBasket.find((item) => item.id === product.id);
+      if (existingItem) {
+        // Update quantity if item already exists in the basket
+        return prevBasket.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        // Add new item to the basket
+        return [...prevBasket, { id: product.id, name: product.name, price: product.price, quantity: 1 }];
+      }
+    });
+  }
+
+  function removeOneFromBasket(productId: number) {
+    setBasket((prevBasket) => {
+      const updatedBasket = prevBasket
+        .map((item) =>
+          item.id === productId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0); // Remove items with quantity 0
+      return updatedBasket;
+    });
   }
 
   // ===== Search, Sort, and Filter =====
@@ -91,7 +130,28 @@ function App() {
           <div id="exit-area">
             <p id="exit-icon" onClick={hideBasket}>x</p>
           </div>
-          <p>Your basket is empty</p>
+          {basket.length === 0 ? (
+            <p>Your basket is empty</p>
+          ) : (
+            <>
+              {basket.map((item) => (
+                <div key={item.id} className="shopping-row">
+                  <div className="shopping-information">
+                    <p>
+                      {item.name} (£{item.price.toFixed(2)}) - {item.quantity}
+                    </p>
+                  </div>
+                  <button onClick={() => removeOneFromBasket(item.id)}>Remove</button>
+                </div>
+              ))}
+              <p>
+                Total: £
+                {basket
+                  .reduce((total, item) => total + item.price * item.quantity, 0)
+                  .toFixed(2)}
+              </p>
+            </>
+          )}
         </div>
       </div>
       <div id="search-bar">
@@ -131,7 +191,9 @@ function App() {
           ? '1 Result'
           : `${searchedProducts.length} Results`}
       </p>
-      <ProductList itemList={searchedProducts} />
+      <ProductList 
+      itemList={searchedProducts}
+      addToBasket={addToBasket} /> 
     </div>
   );
 }
